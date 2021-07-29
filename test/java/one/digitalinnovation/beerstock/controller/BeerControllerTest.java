@@ -27,6 +27,7 @@ import static one.digitalinnovation.beerstock.utils.JsonConvertionUtils.asJsonSt
 import one.digitalinnovation.beerstock.builder.BeerDTOBuilder;
 import one.digitalinnovation.beerstock.dto.BeerDTO;
 import one.digitalinnovation.beerstock.dto.QuantityDTO;
+import one.digitalinnovation.beerstock.exception.BeerAlreadyRegisteredException;
 import one.digitalinnovation.beerstock.exception.BeerNotFoundException;
 import one.digitalinnovation.beerstock.mapper.BeerMapper;
 import one.digitalinnovation.beerstock.service.BeerService;
@@ -145,5 +146,31 @@ public class BeerControllerTest {
                 .andExpect(status().isOk());
                 
     }
+    
+    @Test
+    void whenDeteteIsCalledWithValidIdThenNoContentesStatusIsReturned() throws Exception {
+        // given
+        BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+
+        //when
+       doNothing().when(beerService).deleteById(beerDTO.getId());
+
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.delete(BEER_API_URL_PATH + "/" + beerDTO.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+    }
+    
+    @Test
+    void whenDeteteIsCalledWithInvalidIdThenNotFoundStatusIsReturned() throws Exception {
+     
+        //when
+       doThrow(BeerNotFoundException.class).when(beerService).deleteById(INVALID_BEER_ID);
+
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.delete(BEER_API_URL_PATH + "/" + INVALID_BEER_ID)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    } 
 
 }

@@ -37,7 +37,6 @@ import one.digitalinnovation.beerstock.exception.BeerNotFoundException;
 import one.digitalinnovation.beerstock.mapper.BeerMapper;
 import one.digitalinnovation.beerstock.repository.BeerRepository;
 
-
 @ExtendWith(MockitoExtension.class)
 public class BeerServiceTest {
 
@@ -51,6 +50,7 @@ public class BeerServiceTest {
 	@InjectMocks
 	private BeerService beerService;
 
+	// criando uma Beer
 	@Test
 	void whenBeerInformedThenItShouldBeCreated() throws BeerAlreadyRegisteredException {
 		// givem
@@ -71,6 +71,7 @@ public class BeerServiceTest {
 
 	}
 
+	// já existe essa beer lanca exception
 	@Test
 	void whenalreadyRegisteredBeerInformadthenExceptionShouldBeThrown() {
 		// givem
@@ -84,6 +85,7 @@ public class BeerServiceTest {
 		assertThrows(BeerAlreadyRegisteredException.class, () -> beerService.createBeer(beerDTO));
 
 	}
+	// Pesquisa por nome
 
 	@Test
 	void whenValidBeerNameisGivenThanReturnABeer() throws BeerNotFoundException {
@@ -100,6 +102,7 @@ public class BeerServiceTest {
 		assertThat(foundBeerDTO, is(equalTo(expectedFoundBeerDTO)));
 
 	}
+	// nome vazio retorna exception
 
 	@Test
 	void whenNotRegisteredBeerNameisGivenThanthrowsException() {
@@ -113,31 +116,51 @@ public class BeerServiceTest {
 		assertThrows(BeerNotFoundException.class, () -> beerService.findByName(expectedFoundBeerDTO.getName()));
 
 	}
+
+	// restorna lista
 	@Test
 	void whenListBeerIsCallledThenReturnAsListOfBeers() {
 		// given
 		BeerDTO expectedFoundBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
 		Beer expectedFoundBeer = beerMapper.toModel(expectedFoundBeerDTO);
-		//when
+		// when
 		when(beerRepository.findAll()).thenReturn(Collections.singletonList(expectedFoundBeer));
-		
-		//then
+
+		// then
 		List<BeerDTO> listAllBeersDTO = beerService.listAll();
 		assertThat(listAllBeersDTO, is(not(empty())));
 		assertThat(listAllBeersDTO.get(0), is(equalTo(expectedFoundBeerDTO)));
-				
+
 	}
+
+	// Lista vazia
 	@Test
 	void whenListBeerIsCallledThenReturnAnEmptyListOfBeers() {
-		
-		//when
+
+		// when
 		when(beerRepository.findAll()).thenReturn(Collections.EMPTY_LIST);
-		
-		//then
+
+		// then
 		List<BeerDTO> listAllBeersDTO = beerService.listAll();
 		assertThat(listAllBeersDTO, is(empty()));
-			
+
 	}
-	
+	// deleted uma beer
+	@Test
+	void whenExclusionIsCalledWithValidIdThenABeerShouldBeDeleted() throws BeerNotFoundException {
+		// given
+		BeerDTO expectedDeletedBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+		Beer expectedDeletedBeer = beerMapper.toModel(expectedDeletedBeerDTO);
+
+		// when
+		when(beerRepository.findById(expectedDeletedBeerDTO.getId())).thenReturn(Optional.of(expectedDeletedBeer));
+		doNothing().when(beerRepository).deleteById(expectedDeletedBeerDTO.getId());
+
+		// then
+		beerService.deleteById(expectedDeletedBeerDTO.getId());
+
+		verify(beerRepository, times(1)).findById(expectedDeletedBeerDTO.getId());
+		verify(beerRepository, times(1)).deleteById(expectedDeletedBeerDTO.getId());
+	}
 
 }
